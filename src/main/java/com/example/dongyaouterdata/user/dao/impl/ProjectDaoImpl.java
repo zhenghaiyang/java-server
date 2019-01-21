@@ -22,7 +22,15 @@ public class ProjectDaoImpl implements ProjectDao {
     // 获取全部项目
     @Override
     public List<Project> getAllProject() {
-        String sql ="SELECT * FROM pproject";
+        String sql ="SELECT " +
+                "p.id, " +
+                "p.projectName," +
+                "p.createdTime," +
+                "p.endTime," +
+                "p.startTime," +
+                "pu.userName AS projectManage  " +
+                "FROM pproject AS p " +
+                "LEFT JOIN puser pu ON (p.projectManage=pu.id)";
         RowMapper<Project> rowMapper = new BeanPropertyRowMapper<>(Project.class);
         List<Project> projcetList = jdbcTemplate.query(sql,rowMapper);
         return projcetList;
@@ -40,11 +48,11 @@ public class ProjectDaoImpl implements ProjectDao {
     @Override
     public Integer addProject(Project project) {
         String sql= "INSERT into pproject" +
-                "(projectName,createdTime,startTime)" +
+                "(projectName,createdTime,startTime,endTime,projectManage)" +
                 "VALUE" +
-                "(?,?,?)";
+                "(?,?,?,?,?)";
         System.out.print(sql);
-        Integer rep =jdbcTemplate.update(sql,project.getProjectName().trim(),project.getCreatedTime(),project.getStartTime());
+        Integer rep =jdbcTemplate.update(sql,project.getProjectName().trim(),project.getCreatedTime(),project.getStartTime(),project.getEndTime(),project.getProjectManage());
         return rep;
     }
     // 根据项目id获取项目下的全部人员
@@ -54,7 +62,7 @@ public class ProjectDaoImpl implements ProjectDao {
                 "up.id," +
                 "up.projectId," +
                 "up.userId," +
-                "up.userTime, " +
+                "SUM(up.userTime) AS allTime, " +
                 "u.userName, " +
                 "p.value AS positionName, "+
                 "pt.value AS timeName "+
@@ -62,11 +70,10 @@ public class ProjectDaoImpl implements ProjectDao {
                 "LEFT JOIN puser u ON (up.userId=u.id) " +
                 "LEFT JOIN pposition p ON (up.userPosition = p.key) " +
                 "LEFT JOIN ptime pt ON (up.userTime = pt.key) " +
-                "WHERE up.projectId=?";
+                "WHERE up.projectId=? GROUP BY up.userId";
+        System.out.print(sql);
         RowMapper<ProjectAndUser> rowMapper = new BeanPropertyRowMapper<>(ProjectAndUser.class);
         List<ProjectAndUser> projectAndUser = jdbcTemplate.query(sql,rowMapper,project.getId());
-        System.out.print(jdbcTemplate.query(sql,rowMapper,project.getId()));
-        System.out.print(project.getId());
         return projectAndUser;
     }
 
@@ -74,11 +81,11 @@ public class ProjectDaoImpl implements ProjectDao {
     @Override
     public Integer importProject(ProjectAndUser projectAndUser) {
         String sql= "INSERT into userAndProject" +
-                "(userId,projectId,userTime,userPosition,importProjectTime)" +
+                "(userId,projectId,userTime,userPosition,importProjectTime,workType)" +
                 "VALUE" +
-                "(?,?,?,?,?)";
+                "(?,?,?,?,?,?)";
         System.out.print(sql);
-        Integer rep =jdbcTemplate.update(sql,projectAndUser.getUserId(),projectAndUser.getProjectId(),projectAndUser.getUserTime(),projectAndUser.getUserPosition().trim(),projectAndUser.getImportProjectTime());
+        Integer rep =jdbcTemplate.update(sql,projectAndUser.getUserId(),projectAndUser.getProjectId(),projectAndUser.getUserTime(),projectAndUser.getUserPosition().trim(),projectAndUser.getImportProjectTime(),projectAndUser.getWorkType());
         return rep;
     }
     // 获取全部时长
@@ -128,6 +135,20 @@ public class ProjectDaoImpl implements ProjectDao {
         RowMapper<ProjectAndUser> rowMapper = new BeanPropertyRowMapper<>(ProjectAndUser.class);
         List<ProjectAndUser> projectAndUserList= jdbcTemplate.query(sql,rowMapper,projectAndUser.getUserId(),projectAndUser.getImportProjectTime());
         System.out.print(sql);
+        return projectAndUserList;
+    }
+    // 根据用户id 和时间段查询
+    @Override
+    public List<ProjectAndUser> getDetilsByUser(String userId, String startTime, String endTime) {
+        String sql ="SELECT " +
+                    "p.*," +
+                    "ps.projectName " +
+                    "FROM userAndProject p " +
+                    "LEFT JOIN pproject ps ON(ps.id=p.projectId) " +
+                    "WHERE p.userId=? AND DATE_FORMAT(p.importProjectTime,'%Y-%m') BETWEEN ? AND ? " +
+                    "order by p.importProjectTime asc ";
+        RowMapper<ProjectAndUser> rowMapper = new BeanPropertyRowMapper<>(ProjectAndUser.class);
+        List<ProjectAndUser> projectAndUserList= jdbcTemplate.query(sql,rowMapper,userId,startTime,endTime);
         return projectAndUserList;
     }
 

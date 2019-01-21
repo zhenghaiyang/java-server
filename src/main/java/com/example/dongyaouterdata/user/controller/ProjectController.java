@@ -6,10 +6,7 @@ import com.example.dongyaouterdata.user.model.ProjectAndUser;
 import com.example.dongyaouterdata.user.model.ProjectTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -107,5 +104,17 @@ public class ProjectController {
             return ResponseData.response(projectTime,"操作失败",500);
         }
     }
-
+    // 根据用户id和时间段查询数据
+    @RequestMapping(value="/userDetils")
+    private ResponseData getDetilsByUser(@RequestBody Map<String,String> requestBody) {
+        String userId = requestBody.get("userId");
+        String startTime = requestBody.get("startTime");
+        String endTime = requestBody.get("endTime");
+        List<ProjectAndUser> projectAndUser = projectService.getDetilsByUser(userId,startTime,endTime);
+        try{
+            return ResponseData.response(projectAndUser,"操作成功",200);
+        }catch (EmptyResultDataAccessException e){
+            return ResponseData.response(projectAndUser,"操作失败",500);
+        }
+    }
 }

@@ -66,5 +66,10 @@ public class ProjectServiceImpl implements ProjectService {
     public List<ProjectAndUser> selectListByUserIdAndProjectImportTime(ProjectAndUser projectAndUser) {
         return projectDao.selectListByUserIdAndProjectImportTime(projectAndUser);
     }
+    // 根据用户id 和时间段查询
+    @Override
+    public List<ProjectAndUser> getDetilsByUser(String userId, String startTime, String endTime) {
+        return projectDao.getDetilsByUser(userId,startTime,endTime);
+    }
 
 }

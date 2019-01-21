@@ -28,4 +28,6 @@ public interface ProjectDao {
     List<Project> selectProjectByProjectName(Project project);
     // 根据用户id 和用户项目录入时间查询项目
     List<ProjectAndUser> selectListByUserIdAndProjectImportTime(ProjectAndUser projectAndUser);
+    // 根据用户id 和时间段查询
+    List<ProjectAndUser> getDetilsByUser(String userId, String startTime, String endTime);
 }

@@ -25,4 +25,8 @@ public class ProjectAndUser {
     private String timeName;
     // 用户录入项目时间
     private String importProjectTime;
+    // 工作类型  1 工作日 2 加班
+    private String workType;
+    // 总时长
+    private String allTime;
 }
