@@ -23,7 +23,7 @@ public class ProjectController {
 
     // 获取全部项目
     @RequestMapping(value="/all")
-    private ResponseData getAllProject(@RequestBody Map<String,Object> requestBody)  {
+    private ResponseData getAllProject(@RequestBody Map<String,String> requestBody)  {
         List<Project> projectList =  projectService.getAllProject();
         if(projectList != null) {
             return ResponseData.response(projectList,"操作成功",200);
@@ -31,6 +31,20 @@ public class ProjectController {
             return ResponseData.response(projectList,"操作失败",500);
         }
     }
+    // 统计页面获取全部项目
+    @RequestMapping(value="/allByParams")
+    private ResponseData allByParamsList(@RequestBody Map<String,String> requestBody) {
+        String projectName = requestBody.get("projectName");
+        String startTime = requestBody.get("startTime");
+        String endTime = requestBody.get("endTime");
+        List<Project> projectList =  projectService.getAllProjectByParams(projectName,startTime,endTime);
+        if(projectList != null) {
+            return ResponseData.response(projectList,"操作成功",200);
+        }else {
+            return ResponseData.response(projectList,"操作失败",500);
+        }
+    }
+
 
     // 删除项目
     @RequestMapping(value="/del")
@@ -115,6 +129,17 @@ public class ProjectController {
             return ResponseData.response(projectAndUser,"操作成功",200);
         }catch (EmptyResultDataAccessException e){
             return ResponseData.response(projectAndUser,"操作失败",500);
+        }
+    }
+    // 结束项目
+    @RequestMapping(value="/closeProject")
+    private ResponseData closeProject(@RequestBody Project project) {
+        HashMap<String, Object> map = new HashMap<>();
+        Integer rep = projectService.closeProject(project);
+        if( rep !=0 ) {
+            return ResponseData.response(map,"操作成功",200);
+        }else{
+            return ResponseData.response(map,"操作失败",500);
         }
     }
 }

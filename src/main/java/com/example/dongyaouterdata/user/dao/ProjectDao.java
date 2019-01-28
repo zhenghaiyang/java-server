@@ -30,4 +30,8 @@ public interface ProjectDao {
     List<ProjectAndUser> selectListByUserIdAndProjectImportTime(ProjectAndUser projectAndUser);
     // 根据用户id 和时间段查询
     List<ProjectAndUser> getDetilsByUser(String userId, String startTime, String endTime);
+    // 统计页面获取全部项目
+    List<Project> getAllProjectByParams(String projectName, String startTime, String endTime);
+    // 结束项目
+    Integer closeProject(Project project);
 }

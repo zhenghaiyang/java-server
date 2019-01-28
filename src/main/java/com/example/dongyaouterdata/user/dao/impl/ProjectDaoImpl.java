@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -28,6 +29,8 @@ public class ProjectDaoImpl implements ProjectDao {
                 "p.createdTime," +
                 "p.endTime," +
                 "p.startTime," +
+                "p.trueEndTime, " +
+                "p.projectStatus, " +
                 "pu.userName AS projectManage  " +
                 "FROM pproject AS p " +
                 "LEFT JOIN puser pu ON (p.projectManage=pu.id)";
@@ -48,9 +51,9 @@ public class ProjectDaoImpl implements ProjectDao {
     @Override
     public Integer addProject(Project project) {
         String sql= "INSERT into pproject" +
-                "(projectName,createdTime,startTime,endTime,projectManage)" +
+                "(projectName,createdTime,startTime,endTime,projectManage,projectStatus)" +
                 "VALUE" +
-                "(?,?,?,?,?)";
+                "(?,?,?,?,?,'2')";
         System.out.print(sql);
         Integer rep =jdbcTemplate.update(sql,project.getProjectName().trim(),project.getCreatedTime(),project.getStartTime(),project.getEndTime(),project.getProjectManage());
         return rep;
@@ -150,6 +153,51 @@ public class ProjectDaoImpl implements ProjectDao {
         RowMapper<ProjectAndUser> rowMapper = new BeanPropertyRowMapper<>(ProjectAndUser.class);
         List<ProjectAndUser> projectAndUserList= jdbcTemplate.query(sql,rowMapper,userId,startTime,endTime);
         return projectAndUserList;
+    }
+    // 统计页面获取全部项目
+    @Override
+    public List<Project> getAllProjectByParams(String projectName, String startTime, String endTime) {
+        List<String> list = new ArrayList<String>();
+        String sql ="SELECT " +
+                "p.id, " +
+                "p.projectName," +
+                "p.createdTime," +
+                "p.endTime," +
+                "p.startTime," +
+                "p.trueEndTime, " +
+                "p.projectStatus, " +
+                "pu.userName AS projectManage  " +
+                "FROM pproject AS p " +
+                "LEFT JOIN puser pu ON (p.projectManage=pu.id) ";
+                if(!projectName.equals("")) {
+                    sql+= " WHERE p.projectName LIKE \"%\" ? \"%\" ";
+                    list.add(projectName.trim());
+                }
+                if(!startTime.equals("") && endTime.equals("")) {
+                    sql += " WHERE DATE_FORMAT(p.createdTime,'%Y-%m') >= ? ";
+                    list.add(startTime);
+                }else if(!endTime.equals("") && startTime.equals("")) {
+                    sql += " WHERE DATE_FORMAT(p.createdTime,'%Y-%m') <= ? ";
+                    list.add(endTime);
+                }else if(!endTime.equals("") && !startTime.equals("")) {
+                    sql += " WHERE DATE_FORMAT(p.createdTime,'%Y-%m') >= ? AND DATE_FORMAT(p.createdTime,'%Y-%m') <= ?";
+                    list.add(startTime);
+                    list.add(endTime);
+                }
+        Object[] params = list.toArray();
+        RowMapper<Project> rowMapper = new BeanPropertyRowMapper<>(Project.class);
+        List<Project> projects= jdbcTemplate.query(sql,rowMapper,params);
+        return projects;
+    }
+    // 结束项目
+    @Override
+    public Integer closeProject(Project project) {
+        String sql= "UPDATE  pproject " +
+                    "SET trueEndTime = ? " +
+                    "WHERE id = ? ";
+        System.out.print(sql);
+        Integer rep =jdbcTemplate.update(sql,project.getTrueEndTime(),project.getId());
+        return rep;
     }
 
 }

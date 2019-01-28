@@ -71,5 +71,15 @@ public class ProjectServiceImpl implements ProjectService {
     public List<ProjectAndUser> getDetilsByUser(String userId, String startTime, String endTime) {
         return projectDao.getDetilsByUser(userId,startTime,endTime);
     }
+    // 统计页面获取全部项目
+    @Override
+    public List<Project> getAllProjectByParams(String projectName, String startTime, String endTime) {
+        return projectDao.getAllProjectByParams(projectName,startTime,endTime);
+    }
+    // 结束项目
+    @Override
+    public Integer closeProject(Project project) {
+        return projectDao.closeProject(project);
+    }
 
 }
